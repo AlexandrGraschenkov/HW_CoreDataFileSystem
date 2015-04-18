@@ -17,6 +17,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     if (_theText) {
+        [_descript setContentMode:UIViewContentModeScaleToFill];
         [_descript setText:_theText];
     }
 }

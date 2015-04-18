@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14D131" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="n4H-wB-mAQ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14D131" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="n4H-wB-mAQ">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
     </dependencies>
@@ -34,26 +34,18 @@
                                 <tableViewCellContentView key="contentView" autoresizesSubviews="NO" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="5nM-Jd-IWM" id="Zaz-dW-Zet">
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="thc-ne-7C2">
-                                            <rect key="frame" x="56" y="22" width="0.0" height="0.0"/>
+                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="ZAO-Bf-xQf">
+                                            <rect key="frame" x="8" y="2" width="40" height="40"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        </imageView>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="thc-ne-7C2">
+                                            <rect key="frame" x="56" y="2" width="223" height="40"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                             <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="ZAO-Bf-xQf">
-                                            <rect key="frame" x="8" y="2" width="40" height="40"/>
-                                            <constraints>
-                                                <constraint firstAttribute="height" constant="40" id="Eoe-SI-gwJ"/>
-                                                <constraint firstAttribute="width" constant="40" id="SF2-rO-Vjt"/>
-                                            </constraints>
-                                        </imageView>
                                     </subviews>
-                                    <constraints>
-                                        <constraint firstItem="thc-ne-7C2" firstAttribute="leading" secondItem="ZAO-Bf-xQf" secondAttribute="trailing" constant="8" id="2fu-UN-zKX"/>
-                                        <constraint firstAttribute="centerY" secondItem="ZAO-Bf-xQf" secondAttribute="centerY" id="8jh-J9-2RD"/>
-                                        <constraint firstItem="ZAO-Bf-xQf" firstAttribute="leading" secondItem="Zaz-dW-Zet" secondAttribute="leading" constant="8" id="SKe-9h-OIA"/>
-                                        <constraint firstAttribute="centerY" secondItem="thc-ne-7C2" secondAttribute="centerY" id="kqs-cb-hIa"/>
-                                    </constraints>
                                 </tableViewCellContentView>
                                 <connections>
                                     <outlet property="image" destination="ZAO-Bf-xQf" id="AuK-Ze-4xn"/>
@@ -85,28 +77,19 @@
         <scene sceneID="dnr-pl-wxp">
             <objects>
                 <viewController storyboardIdentifier="textV" useStoryboardIdentifierAsRestorationIdentifier="YES" id="bbt-14-rwC" customClass="TextController" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="y31-4V-NEs"/>
-                        <viewControllerLayoutGuide type="bottom" id="sGk-me-ijK"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="89u-Fl-DaD">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hqP-Gs-47b">
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="hqP-Gs-47b">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <constraints>
-                            <constraint firstItem="sGk-me-ijK" firstAttribute="top" secondItem="hqP-Gs-47b" secondAttribute="bottom" id="FhZ-0q-IcI"/>
-                            <constraint firstAttribute="trailing" secondItem="hqP-Gs-47b" secondAttribute="trailing" id="MyC-Ht-0wM"/>
-                            <constraint firstItem="hqP-Gs-47b" firstAttribute="leading" secondItem="89u-Fl-DaD" secondAttribute="leading" id="QJy-P6-rR7"/>
-                            <constraint firstItem="hqP-Gs-47b" firstAttribute="top" secondItem="89u-Fl-DaD" secondAttribute="top" id="SKq-uc-VgC"/>
-                        </constraints>
                     </view>
                     <connections>
                         <outlet property="descript" destination="hqP-Gs-47b" id="aVs-yT-oR8"/>
@@ -120,15 +103,20 @@
         <scene sceneID="Beo-HN-uf4">
             <objects>
                 <viewController storyboardIdentifier="imageV" useStoryboardIdentifierAsRestorationIdentifier="YES" id="Q5s-C5-0Kz" customClass="ImageController" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="FL4-KE-hbZ"/>
-                        <viewControllerLayoutGuide type="bottom" id="Okb-O9-Wqn"/>
-                    </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="MDG-ea-jd9">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="Rem-64-xIT">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                            </imageView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
+                    <connections>
+                        <outlet property="imgView" destination="Rem-64-xIT" id="as4-bP-kb6"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Zck-IO-iW8" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

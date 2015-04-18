@@ -33,8 +33,12 @@
     [super viewDidLoad];
     nCenter = [NSNotificationCenter defaultCenter];
     [self setupDataSource];
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    [self setupAlertController];
+//    
+//    NSLog(@"View Width: %f Height: %f", self.view.frame.size.width,self.view.frame.size.height);
+//    NSLog(@"%@", @"----------------------------");
+//    NSLog(@"NavBar Width: %f Height: %f", self.navigationController.navigationBar.frame.size.width,self.navigationController.navigationBar.frame.size.height);
+
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -60,8 +64,7 @@
     _fetchedResults.delegate = self;
     _fetchedResults.reuseIdentifier = @"Cell";
 }
-
-- (IBAction)plusPressed:(UIBarButtonItem *)sender {
+-(void)setupAlertController{
     addItem = [UIAlertController alertControllerWithTitle:@"" message:@"Enter name" preferredStyle:UIAlertControllerStyleAlert];
     cancelAct = [UIAlertAction
                  actionWithTitle:@"Cancel"
@@ -132,6 +135,12 @@
     [addItem addAction:folderAction];
     [addItem addAction:textAction];
     [addItem addAction:pictureAction];
+
+}
+
+- (IBAction)plusPressed:(UIBarButtonItem *)sender {
+    [addItem.view setAlpha:0];
+    [addItem.view setOpaque:NO];
     UINavigationController *destNav = [[UINavigationController alloc] initWithRootViewController:addItem];
     destNav.modalPresentationStyle = UIModalPresentationPopover;
     _popover = destNav.popoverPresentationController;
@@ -140,7 +149,12 @@
         _popover.barButtonItem = sender;
     } else  _popover.barButtonItem = _plusButton;
     destNav.navigationBarHidden = YES;
-    [self presentViewController:destNav animated:YES completion:nil];
+    [self presentViewController:destNav animated:YES completion:^{
+        [UIView animateWithDuration:0.5 animations:^{
+            [addItem.view setAlpha:1.0];
+            [addItem.view setOpaque:YES];
+        }];
+    }];
     
 }
 
