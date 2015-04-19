@@ -54,6 +54,15 @@
     return cell;
 }
 
+-(BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath{
+    return YES;
+}
+
+-(void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath{
+    id object = [_fetchedResultsController objectAtIndexPath:sourceIndexPath];
+    [_delegate moveObject:object to:destinationIndexPath.row];
+}
+
 - (NSArray *)leftButtons
 {
     NSMutableArray *leftUtilityButtons = [NSMutableArray new];

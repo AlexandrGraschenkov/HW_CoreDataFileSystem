@@ -19,6 +19,7 @@
 - (void)configureCell:(id)cell withObject:(id)object;
 - (void)deleteObject:(id)object;
 - (void)renameObject:(id)object to:(NSString*)str;
+- (void)moveObject:(id)object to:(NSInteger)row;
 -(void)showAlertFor:(UIAlertController*)alert;
 @end
 
