@@ -19,12 +19,13 @@
 - (void)configureCell:(id)cell withObject:(id)object;
 - (void)deleteObject:(id)object;
 - (void)renameObject:(id)object to:(NSString*)str;
-- (void)moveObject:(id)object to:(NSInteger)row;
 -(void)showAlertFor:(UIAlertController*)alert;
 @end
 
-@interface FetchedResults : NSObject <UITableViewDataSource, NSFetchedResultsControllerDelegate, SWTableViewCellDelegate, UITextFieldDelegate>
+@interface FetchedResults : NSObject <UITableViewDataSource, NSFetchedResultsControllerDelegate, SWTableViewCellDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate>
 
+@property (nonatomic, strong) NSMutableArray *fetchedArray;
+@property (nonatomic, strong) NSManagedObjectContext* context;
 @property (nonatomic, strong) NSFetchedResultsController* fetchedResultsController;
 @property (nonatomic, weak) id<FetchedResultsDataDelegating> delegate;
 @property (nonatomic, copy) NSString* reuseIdentifier;

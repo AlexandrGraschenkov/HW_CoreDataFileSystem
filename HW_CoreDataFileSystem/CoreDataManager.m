@@ -34,38 +34,39 @@
     return self;
 }
 
--(void)saveItem:(Item*)item{
-    dispatch_async(queue, ^{
-        [_managedObjectContext insertObject:item];
-    });
-}
--(void)deleteItem:(Item*)item{
-    dispatch_async(queue, ^{
-        [_managedObjectContext deleteObject:item];
-    });
-}
+//-(void)saveItem:(Item*)item{
+//    dispatch_async(queue, ^{
+//        [_managedObjectContext insertObject:item];
+//    });
+//}
+//-(void)deleteItem:(Item*)item{
+//    dispatch_async(queue, ^{
+//        [_managedObjectContext deleteObject:item];
+//    });
+//}
 -(void)save{
     dispatch_async(queue, ^{
         NSError *error;
         if (![_managedObjectContext save:&error]) {
+            NSLog(@"%@", @"ABORTED!");
             abort();
         }
     });
 }
--(void)getItems:(void(^)(NSArray *itemsArr))completion{
-    dispatch_async(queue, ^{
-        NSError *error;
-        NSFetchRequest *req = [NSFetchRequest fetchRequestWithEntityName:@"Item"];
-        NSArray *result = [_managedObjectContext executeFetchRequest:req error:&error];
-        if (error) {
-            NSLog(@"%@", @"getAll error");
-            abort();
-        }
-        dispatch_async(dispatch_get_main_queue(), ^{
-            completion(result);
-        });
-    });
-}
+//-(void)getItems:(void(^)(NSArray *itemsArr))completion{
+//    dispatch_async(queue, ^{
+//        NSError *error;
+//        NSFetchRequest *req = [NSFetchRequest fetchRequestWithEntityName:@"Item"];
+//        NSArray *result = [_managedObjectContext executeFetchRequest:req error:&error];
+//        if (error) {
+//            NSLog(@"%@", @"getAll error");
+//            abort();
+//        }
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            completion(result);
+//        });
+//    });
+//}
 
 - (NSManagedObjectModel *)managedObjectModel {
     if (_managedObjectModel != nil) {

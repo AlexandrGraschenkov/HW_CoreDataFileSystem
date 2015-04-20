@@ -37,11 +37,3 @@ typedef enum {
 
 @end
 
-@interface Item (CoreDataGeneratedAccessors)
-
-- (void)addChildrenObject:(Item *)value;
-- (void)removeChildrenObject:(Item *)value;
-- (void)addChildren:(NSSet *)values;
-- (void)removeChildren:(NSSet *)values;
-
-@end

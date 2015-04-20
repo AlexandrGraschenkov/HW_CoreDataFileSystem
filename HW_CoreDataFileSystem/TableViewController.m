@@ -16,8 +16,7 @@
     UIAlertAction *folderAction;
     UIAlertAction *textAction;
     UIAlertAction *pictureAction;
-    NSString *tempName;
-    
+    NSString *newItemName;
 }
 
 @property (nonatomic,strong) FetchedResults *fetchedResults;
@@ -34,12 +33,11 @@
     nCenter = [NSNotificationCenter defaultCenter];
     [self setupDataSource];
     [self setupAlertController];
-//    
-//    NSLog(@"View Width: %f Height: %f", self.view.frame.size.width,self.view.frame.size.height);
-//    NSLog(@"%@", @"----------------------------");
-//    NSLog(@"NavBar Width: %f Height: %f", self.navigationController.navigationBar.frame.size.width,self.navigationController.navigationBar.frame.size.height);
-
 }
+
+#pragma mark -
+#pragma mark Search Bar
+
 
 - (void)viewWillAppear:(BOOL)animated
 {
@@ -61,11 +59,14 @@
 -(void)setupDataSource{
     _fetchedResults = [[FetchedResults alloc] initWithTableView:self.tableView];
     _fetchedResults.fetchedResultsController = _parent.childrenFetchedResultsController;
+    [_fetchedResults setContext:[self managedObjectContext]];
     _fetchedResults.delegate = self;
     _fetchedResults.reuseIdentifier = @"Cell";
 }
+
+
 -(void)setupAlertController{
-    addItem = [UIAlertController alertControllerWithTitle:@"" message:@"Enter name" preferredStyle:UIAlertControllerStyleAlert];
+    addItem = [UIAlertController alertControllerWithTitle:@"New Item" message:nil preferredStyle:UIAlertControllerStyleAlert];
     cancelAct = [UIAlertAction
                  actionWithTitle:@"Cancel"
                  style:UIAlertActionStyleCancel
@@ -81,12 +82,10 @@
                     style:UIAlertActionStyleDefault
                     handler:^(UIAlertAction *action)
                     {
-                        UITextField *textField = addItem.textFields.lastObject;
-                        NSString *name = textField.text;
-                        NSString* actionName = [NSString stringWithFormat:NSLocalizedString(@"add item \"%@\"", @"Undo action name of add item"), name];
-                        [self.undoManager setActionName:actionName];
-                        [Item insertItemWithTitle:name type:Folder parent:_parent
+                        newItemName = [addItem.textFields.lastObject text];
+                        [Item insertItemWithTitle:newItemName type:Folder parent:_parent
                            inManagedObjectContext:[self managedObjectContext]];
+                        newItemName=nil;
                         [nCenter removeObserver:self                                                                                               name:UITextFieldTextDidChangeNotification
                                          object:nil];
                         [addItem dismissViewControllerAnimated:YES completion:nil];
@@ -96,11 +95,9 @@
                   style:UIAlertActionStyleDefault
                   handler:^(UIAlertAction *action)
                   {
-                      UITextField *textField = addItem.textFields.lastObject;
-                      NSString *name = textField.text;
-                      NSString* actionName = [NSString stringWithFormat:NSLocalizedString(@"add item \"%@\"", @"Undo action name of add item"), name];
-                      [self.undoManager setActionName:actionName];
-                      [Item insertItemWithTitle:name type:Text text:@"" photo:nil parent:_parent inManagedObjectContext:[self managedObjectContext]];
+                      newItemName = [addItem.textFields.lastObject text];
+                      [Item insertItemWithTitle:newItemName type:Text text:@"" photo:[NSData data] parent:_parent inManagedObjectContext:[self managedObjectContext]];
+                      newItemName=nil;
                       [nCenter removeObserver:self                                                                                               name:UITextFieldTextDidChangeNotification
                                        object:nil];
                       [addItem dismissViewControllerAnimated:YES completion:nil];
@@ -110,12 +107,7 @@
                      style:UIAlertActionStyleDefault
                      handler:^(UIAlertAction *action)
                      {
-                         UITextField *textField = addItem.textFields.lastObject;
-                         NSString *name = textField.text;
-                         NSString* actionName = [NSString stringWithFormat:NSLocalizedString(@"add item \"%@\"", @"Undo action name of add item"), name];
-                         [self.undoManager setActionName:actionName];
-                         tempName = name;
-                         [Item insertItemWithTitle:name type:Picture text:nil photo:[NSData data] parent:_parent inManagedObjectContext:[self managedObjectContext]];
+                         newItemName = [addItem.textFields.lastObject text];
                          [nCenter removeObserver:self                                                                                               name:UITextFieldTextDidChangeNotification
                                           object:nil];
                          [addItem dismissViewControllerAnimated:YES completion:nil];
@@ -135,8 +127,9 @@
     [addItem addAction:folderAction];
     [addItem addAction:textAction];
     [addItem addAction:pictureAction];
-
+    
 }
+
 
 - (IBAction)plusPressed:(UIBarButtonItem *)sender {
     [addItem.view setAlpha:0];
@@ -175,19 +168,12 @@
 #pragma mark - Delegate
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-    NSFetchRequest *request = [[NSFetchRequest alloc] init];
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Item" inManagedObjectContext:[self managedObjectContext]];
-    [request setEntity:entity];
-    request.predicate =[NSPredicate predicateWithFormat:@"title = %@", tempName];
-    NSArray *results = [[self managedObjectContext] executeFetchRequest:request error:nil];
-    Item *tempItem = [results lastObject];
     UIImage *chosenImage = info[UIImagePickerControllerEditedImage];
     NSData *imageData = UIImageJPEGRepresentation(chosenImage, 1.0);
-    
-    tempItem.img = imageData;
-    [tempItem.managedObjectContext save:nil];
     [picker dismissViewControllerAnimated:YES completion:NULL];
-    tempName=nil;
+    [Item insertItemWithTitle:newItemName type:Picture text:nil photo:imageData parent:_parent inManagedObjectContext:[self managedObjectContext]];
+    [[self managedObjectContext] save:NULL];
+    newItemName=nil;
 }
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     NSLog(@"%@", @"cancelled!");
@@ -236,29 +222,22 @@
     }
 }
 
-- (void)moveObject:(id)object to:(NSInteger)row
-{
-    Item* item = object;
-    NSString* actionName = [NSString stringWithFormat:NSLocalizedString(@"Move \"%@\"", @"Move undo action name"), item.title];
-    [self.undoManager setActionName:actionName];
-    [item.managedObjectContext save:nil];
-
-}
-
 - (void)deleteObject:(id)object
 {
     Item* item = object;
-    NSString* actionName = [NSString stringWithFormat:NSLocalizedString(@"Delete \"%@\"", @"Delete undo action name"), item.title];
-    [self.undoManager setActionName:actionName];
-    [item.managedObjectContext deleteObject:item];
-    [item.managedObjectContext save:nil];
+    NSArray *childrens = [item.children allObjects];
+    for (Item *itm in childrens) {
+        [[self managedObjectContext] deleteObject:itm];
+    }
+//    [item.managedObjectContext deleteObject:item];
+//    [item.managedObjectContext save:nil];
+    [self.managedObjectContext deleteObject:item];
+    [self.managedObjectContext save:nil];
 }
 
 - (void)renameObject:(id)object to:(NSString*)str
 {
     Item* item = object;
-    NSString* actionName = [NSString stringWithFormat:NSLocalizedString(@"Rename \"%@\"", @"Rename undo action name"), item.title];
-    [self.undoManager setActionName:actionName];
     [item setTitle:str];
     [item.managedObjectContext save:nil];
 }
@@ -268,14 +247,20 @@
 {
     UINavigationController *nav = self.presentedViewController;
     UIAlertController *alertController = (UIAlertController *)[nav visibleViewController];
+    BOOL isExist=NO;
     if (alertController)
     {
         UITextField *name = alertController.textFields.firstObject;
-        if (name.text.length > 2) {
+        for (Item *itm in [_fetchedResults fetchedArray]) {
+            if ([itm.title isEqualToString:name.text])isExist=YES;
+        }
+        if ((name.text.length > 2) && !isExist) {
+            [alertController setTitle:@"New Item"];
             [folderAction setEnabled:YES];
             [textAction setEnabled:YES];
             [pictureAction setEnabled:YES];
-        } else {
+        } else if ((name.text.length < 2) || isExist) {
+            alertController.title = (isExist) ? @"Is Exist!" : @"Too short!";
             [folderAction setEnabled:NO];
             [textAction setEnabled:NO];
             [pictureAction setEnabled:NO];
@@ -292,6 +277,7 @@
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     Item* item = [_fetchedResults selectedItem];
+    NSLog(@"ORDER!!!: %@", item.order);
     switch ([item.type unsignedShortValue]) {
         case 1:{
             [self performSegueWithIdentifier:@"Folder" sender:self];
@@ -337,79 +323,14 @@
     self.navigationItem.title = parent.title;
 }
 
-
-
 - (BOOL)canBecomeFirstResponder {
     return YES;
-}
-
-- (NSUndoManager*)undoManager
-{
-    return self.managedObjectContext.undoManager;
 }
 
 - (void)dealloc
 {
     [nCenter removeObserver:self];
 }
-
-#pragma mark - Table view data source
-
-//- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-//#warning Potentially incomplete method implementation.
-//    // Return the number of sections.
-//    return 0;
-//}
-//
-//- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-//#warning Incomplete method implementation.
-//    // Return the number of rows in the section.
-//    return 0;
-//}
-
-/*
- - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
- UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:<#@"reuseIdentifier"#> forIndexPath:indexPath];
- 
- // Configure the cell...
- 
- return cell;
- }
- */
-
-/*
- // Override to support conditional editing of the table view.
- - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
- // Return NO if you do not want the specified item to be editable.
- return YES;
- }
- */
-
-/*
- // Override to support editing the table view.
- - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
- if (editingStyle == UITableViewCellEditingStyleDelete) {
- // Delete the row from the data source
- [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
- } else if (editingStyle == UITableViewCellEditingStyleInsert) {
- // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
- }
- }
- */
-
-/*
- // Override to support rearranging the table view.
- - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
- }
- */
-
-/*
- // Override to support conditional rearranging of the table view.
- - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
- // Return NO if you do not want the item to be re-orderable.
- return YES;
- }
- */
 
 
 

@@ -20,7 +20,7 @@
 
 - (NSManagedObjectContext *)getContextForCurrentQueue;
 -(void)save;
--(void)saveItem:(Item*)item;
--(void)deleteItem:(Item*)item;
--(void)getItems:(void(^)(NSArray *itemsArr))completion;
+//-(void)saveItem:(Item*)item;
+//-(void)deleteItem:(Item*)item;
+//-(void)getItems:(void(^)(NSArray *itemsArr))completion;
 @end
