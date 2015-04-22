@@ -11,6 +11,8 @@
 @import UIKit;
 #import "Item.h"
 #import "CoreDataManager.h"
+#import "ResultsViewController.h"
+
 
 @class NSFetchedResultsController;
 
@@ -22,14 +24,17 @@
 -(void)showAlertFor:(UIAlertController*)alert;
 @end
 
-@interface FetchedResults : NSObject <UITableViewDataSource, NSFetchedResultsControllerDelegate, SWTableViewCellDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate>
+@interface FetchedResults : NSObject <UITableViewDataSource, NSFetchedResultsControllerDelegate, SWTableViewCellDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate, UISearchResultsUpdating, UISearchControllerDelegate, UISearchBarDelegate>
 
+@property (nonatomic, strong) UISearchController *searchController;
 @property (nonatomic, strong) NSMutableArray *fetchedArray;
+@property (nonatomic, strong) NSMutableArray *searchArray;
 @property (nonatomic, strong) NSManagedObjectContext* context;
 @property (nonatomic, strong) NSFetchedResultsController* fetchedResultsController;
 @property (nonatomic, weak) id<FetchedResultsDataDelegating> delegate;
 @property (nonatomic, copy) NSString* reuseIdentifier;
 @property (nonatomic) BOOL paused;
+
 
 - (id)initWithTableView:(UITableView*)tableView;
 - (id)selectedItem;

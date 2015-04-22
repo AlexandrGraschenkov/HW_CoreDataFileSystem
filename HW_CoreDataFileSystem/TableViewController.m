@@ -62,6 +62,7 @@
     [_fetchedResults setContext:[self managedObjectContext]];
     _fetchedResults.delegate = self;
     _fetchedResults.reuseIdentifier = @"Cell";
+    self.definesPresentationContext = YES;
 }
 
 
@@ -195,12 +196,15 @@
     return whole;
 }
 
+
+
 - (void)configureCell:(id)theCell withObject:(id)object
 {
     SWCell* cell = theCell;
     Item* item = object;
     cell.label.text = item.title;
-    NSString *temp;
+    
+   NSString *temp; //😰😙😉😂😷
     switch ([item.type unsignedShortValue]) {
         case 1:
             cell.sizeLabel.text = [NSString stringWithFormat:@"Items: %lu Size: %@",(unsigned long)item.children.count,[NSByteCountFormatter stringFromByteCount:[self sizeOfFolder:item.children] countStyle:NSByteCountFormatterCountStyleFile]];
@@ -222,6 +226,33 @@
     }
 }
 
+-(SWCell*)setCell:(SWCell*)cell withObject:(id)obj{
+    SWCell *tempCell;
+    Item* item = obj;
+    NSString *temp;
+    
+    switch ([item.type unsignedShortValue]) {
+        case 1:
+            tempCell.sizeLabel.text = [NSString stringWithFormat:@"Items: %lu Size: %@",(unsigned long)item.children.count,[NSByteCountFormatter stringFromByteCount:[self sizeOfFolder:item.children] countStyle:NSByteCountFormatterCountStyleFile]];
+            [tempCell.image setImage:[UIImage imageNamed:@"folder"]];
+            break;
+        case 2:
+            temp = [NSString stringWithFormat:@"Text size: %@",[NSByteCountFormatter stringFromByteCount:[[item.text dataUsingEncoding:NSUTF8StringEncoding] length] countStyle:NSByteCountFormatterCountStyleFile]];
+            tempCell.sizeLabel.text = temp;
+            [tempCell.image setImage:[UIImage imageNamed:@"text"]];
+            break;
+        case 3:
+            temp = [NSString stringWithFormat:@"Image size: %@",[NSByteCountFormatter stringFromByteCount:[item.img length] countStyle:NSByteCountFormatterCountStyleFile]];
+            tempCell.sizeLabel.text = temp;
+            [tempCell.image setImage:[UIImage imageNamed:@"picture"]];
+            break;
+        default:
+            NSLog(@"ERROR type: %@", item.type);
+            break;
+    }
+    return tempCell;
+}
+
 - (void)deleteObject:(id)object
 {
     Item* item = object;
@@ -229,8 +260,6 @@
     for (Item *itm in childrens) {
         [[self managedObjectContext] deleteObject:itm];
     }
-//    [item.managedObjectContext deleteObject:item];
-//    [item.managedObjectContext save:nil];
     [self.managedObjectContext deleteObject:item];
     [self.managedObjectContext save:nil];
 }

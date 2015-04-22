@@ -53,20 +53,6 @@
         }
     });
 }
-//-(void)getItems:(void(^)(NSArray *itemsArr))completion{
-//    dispatch_async(queue, ^{
-//        NSError *error;
-//        NSFetchRequest *req = [NSFetchRequest fetchRequestWithEntityName:@"Item"];
-//        NSArray *result = [_managedObjectContext executeFetchRequest:req error:&error];
-//        if (error) {
-//            NSLog(@"%@", @"getAll error");
-//            abort();
-//        }
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            completion(result);
-//        });
-//    });
-//}
 
 - (NSManagedObjectModel *)managedObjectModel {
     if (_managedObjectModel != nil) {

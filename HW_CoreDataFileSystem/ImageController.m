@@ -8,7 +8,9 @@
 
 #import "ImageController.h"
 
-@interface ImageController () <UIScrollViewDelegate>
+@interface ImageController () <UIScrollViewDelegate, UIGestureRecognizerDelegate> {
+    UIImage *image;
+}
 
 @end
 
@@ -17,10 +19,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     if (_imgData) {
-        [_imgView setImage:[UIImage imageWithData:_imgData]];
+        image = [UIImage imageWithData:_imgData];
+        [_imgView setImage:image];
         _imgView.contentMode = UIViewContentModeScaleAspectFit;
     }
 }
+
+
+
+
 
 
 @end

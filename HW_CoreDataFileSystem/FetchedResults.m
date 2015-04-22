@@ -13,7 +13,10 @@
     UIAlertAction *yesAction;
     NSNotificationCenter *nCenter;
     UILongPressGestureRecognizer *longPress;
+    TableViewController *tableController;
+    NSArray *scopeButtonTitles;
     BOOL isMoving;
+    BOOL scopeButtonPressedIndexNumber;
 }
 @property (nonatomic, strong) UITableView* table;
 
@@ -27,15 +30,109 @@
     if (self) {
         _table = tableView;
         _table.dataSource = self;
+        tableController = (TableViewController*)[_table nextResponder];
         nCenter = [NSNotificationCenter defaultCenter];
-        longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(onLongPress:)];
-        longPress.delegate = self;
-        [_table addGestureRecognizer:longPress];
-        isMoving = NO;
+        [self setupSearching];
+        [self setupLongPressRecognizer];
+        NSLog(@"Last: %@", tableController);
     }
     return self;
 }
 
+
+-(void)setupLongPressRecognizer{
+    longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(onLongPress:)];
+    longPress.delegate = self;
+    [_table addGestureRecognizer:longPress];
+    isMoving = NO;
+}
+
+-(void)setupSearching{
+    UINavigationController *searchResultsController = [[tableController storyboard] instantiateViewControllerWithIdentifier:@"TableSearchResultsNavController"];
+    _searchController = [[UISearchController alloc]
+                         initWithSearchResultsController:searchResultsController];
+    [_searchController setSearchResultsUpdater:self];
+    [[_searchController searchBar] sizeToFit];
+    
+    scopeButtonTitles = [[NSArray alloc] initWithObjects:@"All",@"Folders",@"Text",@"Pics", nil];
+    [[_searchController searchBar] setScopeButtonTitles:scopeButtonTitles];
+    
+    _table.tableHeaderView = self.searchController.searchBar;
+    [_searchController setDimsBackgroundDuringPresentation:YES];
+    
+    [_searchController setDelegate:self];
+    //[[_searchController searchBar] setSelectedScopeButtonIndex:0];
+    [_searchController searchBar].enablesReturnKeyAutomatically = NO;
+    [[_searchController searchBar] setDelegate:self];
+    [_searchController searchBar].text = @" ";
+    
+}
+
+-(void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+    self.searchController = searchController;
+    NSString *searchString;
+    NSNumber *selectedScopeButtonIndex = [NSNumber numberWithUnsignedShort:
+                                          [searchController.searchBar selectedScopeButtonIndex]];
+    
+    UINavigationController *navController = (UINavigationController *)searchController.searchResultsController;
+    ResultsViewController *vc = (ResultsViewController *)navController.topViewController;
+    searchString= [searchController.searchBar text];
+    [self updateFilteredContentForName:searchString andType:selectedScopeButtonIndex];
+    vc.searchResults = _searchArray;
+    [vc.tableView reloadData];
+}
+-(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText{
+    if (searchText.length < 1) {
+        searchBar.text = @" ";
+    }
+}
+-(BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar{
+    searchBar.text = @" ";
+    return YES;
+}
+
+-(BOOL)searchBar:(UISearchBar *)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    BOOL isPreviousTextDummyString = [searchBar.text isEqualToString:@" "];
+    BOOL isNewTextDummyString = [text isEqualToString:@" "];
+    if (isPreviousTextDummyString && !isNewTextDummyString && text.length > 0) {
+        searchBar.text = @"";
+    }
+    return YES;
+}
+
+-(void)searchBar:(UISearchBar *)searchBar selectedScopeButtonIndexDidChange:(NSInteger)selectedScope{
+    [[_searchController searchResultsUpdater] updateSearchResultsForSearchController:_searchController];
+}
+
+-(void)updateFilteredContentForName:(NSString*)name andType:(NSNumber*)type{
+    NSPredicate *typePredicate;
+    typePredicate = [NSPredicate predicateWithFormat:@"type == %d", [type intValue]];
+    if ([name isEqualToString:@" "]) {
+        if ([type isEqualToNumber:[NSNumber numberWithInt:0]]) {
+            NSLog(@"1");
+            if (![_searchArray isEqualToArray:_fetchedArray]) {
+                _searchArray = [_fetchedArray mutableCopy];
+            }
+        } else {
+            NSLog(@"2");
+            _searchArray = [NSMutableArray arrayWithArray:
+                            [_fetchedArray filteredArrayUsingPredicate:typePredicate]];
+        }
+    } else {
+        [_searchArray removeAllObjects];
+        
+        NSPredicate *namePredicate = [NSPredicate predicateWithFormat:@"title contains[cd] %@", name];
+        NSArray *preds = [NSArray arrayWithObjects:namePredicate,typePredicate, nil];
+        NSPredicate *allPreds = [NSCompoundPredicate andPredicateWithSubpredicates:preds];
+        if ([type intValue]==0) {
+            _searchArray = [NSMutableArray arrayWithArray:
+                            [_fetchedArray filteredArrayUsingPredicate:namePredicate]];
+        } else {
+            _searchArray = [NSMutableArray arrayWithArray:
+                            [_fetchedArray filteredArrayUsingPredicate:allPreds]];
+        }
+    }
+}
 
 
 #pragma mark - UIGestureRecognizerDelegate
@@ -91,7 +188,7 @@
                     Item *itm = (Item*)obj;
                     itm.order = [NSNumber numberWithInteger:idx];
                 }];
-                 [_table moveRowAtIndexPath:sourceIndexPath toIndexPath:indexPath];
+                [_table moveRowAtIndexPath:sourceIndexPath toIndexPath:indexPath];
                 sourceIndexPath = indexPath;
             }
             break;
@@ -152,11 +249,6 @@
     return section.numberOfObjects;
 }
 
-//    SWCell *cell = (SWCell *)[tableView dequeueReusableCellWithIdentifier:_reuseIdentifier];
-//    if (cell == nil) {
-//        cell = [[SWCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"CallTableCell"];
-//    }
-
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath {
     id object = [_fetchedResultsController objectAtIndexPath:indexPath];
     SWCell *cell = (SWCell *)[tableView dequeueReusableCellWithIdentifier:_reuseIdentifier forIndexPath:indexPath];
@@ -191,21 +283,21 @@
                  }];
     
     yesAction = [UIAlertAction
-                    actionWithTitle:@"Accept"
-                    style:UIAlertActionStyleDefault
-                    handler:^(UIAlertAction *action)
-                    {
-                        UITextField *textField = renameItem.textFields.lastObject;
-                        NSString *name = textField.text;
-                        for (Item *obj in [_fetchedResultsController fetchedObjects]) {
-                            if ([obj.title isEqualToString:[myCell.label text]]) {
-                                [_delegate renameObject:obj to:name];
-                            }
-                        }
-                        [nCenter removeObserver:self                                                                                               name:UITextFieldTextDidChangeNotification
-                                         object:nil];
-                        [renameItem dismissViewControllerAnimated:YES completion:nil];
-                    }];
+                 actionWithTitle:@"Accept"
+                 style:UIAlertActionStyleDefault
+                 handler:^(UIAlertAction *action)
+                 {
+                     UITextField *textField = renameItem.textFields.lastObject;
+                     NSString *name = textField.text;
+                     for (Item *obj in [_fetchedResultsController fetchedObjects]) {
+                         if ([obj.title isEqualToString:[myCell.label text]]) {
+                             [_delegate renameObject:obj to:name];
+                         }
+                     }
+                     [nCenter removeObserver:self                                                                                               name:UITextFieldTextDidChangeNotification
+                                      object:nil];
+                     [renameItem dismissViewControllerAnimated:YES completion:nil];
+                 }];
     [renameItem addTextFieldWithConfigurationHandler:^(UITextField *textField) {
         textField.placeholder = @"filename...";
         [nCenter addObserver:self
@@ -258,11 +350,11 @@
 - (void)controller:(NSFetchedResultsController*)controller didChangeObject:(id)anObject atIndexPath:(NSIndexPath*)indexPath forChangeType:(NSFetchedResultsChangeType)type newIndexPath:(NSIndexPath*)newIndexPath
 {
     if (isMoving)return;
-
+    
     if (type == NSFetchedResultsChangeInsert) {
         [_table insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
     } else if (type == NSFetchedResultsChangeMove) {
-         [_table moveRowAtIndexPath:indexPath toIndexPath:newIndexPath];
+        [_table moveRowAtIndexPath:indexPath toIndexPath:newIndexPath];
     } else if (type == NSFetchedResultsChangeDelete) {
         [_table deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
     } else if (type == NSFetchedResultsChangeUpdate) {
@@ -278,11 +370,11 @@
     fetchedResultsController.delegate = self;
     [fetchedResultsController performFetch:NULL];
     _fetchedArray = [[NSMutableArray alloc] initWithArray:[_fetchedResultsController fetchedObjects]];
+    _searchArray = [[NSMutableArray alloc] initWithCapacity:[_fetchedArray count]];
 }
 
 -(void)setContext:(NSManagedObjectContext *)context{
     _context = context;
-    //[_context setStalenessInterval:0];
 }
 
 - (id)selectedItem {

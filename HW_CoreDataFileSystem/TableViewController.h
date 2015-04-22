@@ -17,4 +17,5 @@
 @interface TableViewController : UITableViewController
 
 @property (nonatomic, strong) Item* parent;
+-(unsigned long long)sizeOfFolder:(NSSet*)folder;
 @end
