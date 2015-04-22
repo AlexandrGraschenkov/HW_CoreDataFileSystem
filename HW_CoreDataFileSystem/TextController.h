@@ -11,7 +11,6 @@
 
 @interface TextController : UIViewController
 @property (nonatomic) IBOutlet UITextView *descript;
--(void)setDescriptText:(NSString*)str;
 @property Item *item;
 @property NSString *theText;
 @end

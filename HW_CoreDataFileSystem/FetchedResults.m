@@ -13,7 +13,6 @@
     UIAlertAction *yesAction;
     NSNotificationCenter *nCenter;
     UILongPressGestureRecognizer *longPress;
-    TableViewController *tableController;
     NSArray *scopeButtonTitles;
     BOOL isMoving;
     BOOL scopeButtonPressedIndexNumber;
@@ -30,27 +29,18 @@
     if (self) {
         _table = tableView;
         _table.dataSource = self;
-        tableController = (TableViewController*)[_table nextResponder];
         nCenter = [NSNotificationCenter defaultCenter];
         [self setupSearching];
         [self setupLongPressRecognizer];
-        NSLog(@"Last: %@", tableController);
     }
     return self;
 }
 
 
--(void)setupLongPressRecognizer{
-    longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(onLongPress:)];
-    longPress.delegate = self;
-    [_table addGestureRecognizer:longPress];
-    isMoving = NO;
-}
+#pragma mark - Searching!
 
 -(void)setupSearching{
-    UINavigationController *searchResultsController = [[tableController storyboard] instantiateViewControllerWithIdentifier:@"TableSearchResultsNavController"];
-    _searchController = [[UISearchController alloc]
-                         initWithSearchResultsController:searchResultsController];
+    _searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
     [_searchController setSearchResultsUpdater:self];
     [[_searchController searchBar] sizeToFit];
     
@@ -58,10 +48,8 @@
     [[_searchController searchBar] setScopeButtonTitles:scopeButtonTitles];
     
     _table.tableHeaderView = self.searchController.searchBar;
-    [_searchController setDimsBackgroundDuringPresentation:YES];
-    
+    [_searchController setDimsBackgroundDuringPresentation:NO];
     [_searchController setDelegate:self];
-    //[[_searchController searchBar] setSelectedScopeButtonIndex:0];
     [_searchController searchBar].enablesReturnKeyAutomatically = NO;
     [[_searchController searchBar] setDelegate:self];
     [_searchController searchBar].text = @" ";
@@ -70,16 +58,12 @@
 
 -(void)updateSearchResultsForSearchController:(UISearchController *)searchController {
     self.searchController = searchController;
-    NSString *searchString;
     NSNumber *selectedScopeButtonIndex = [NSNumber numberWithUnsignedShort:
                                           [searchController.searchBar selectedScopeButtonIndex]];
     
-    UINavigationController *navController = (UINavigationController *)searchController.searchResultsController;
-    ResultsViewController *vc = (ResultsViewController *)navController.topViewController;
-    searchString= [searchController.searchBar text];
+    NSString *searchString = [searchController.searchBar text];
     [self updateFilteredContentForName:searchString andType:selectedScopeButtonIndex];
-    vc.searchResults = _searchArray;
-    [vc.tableView reloadData];
+    [_table reloadData];
 }
 -(void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText{
     if (searchText.length < 1) {
@@ -109,12 +93,10 @@
     typePredicate = [NSPredicate predicateWithFormat:@"type == %d", [type intValue]];
     if ([name isEqualToString:@" "]) {
         if ([type isEqualToNumber:[NSNumber numberWithInt:0]]) {
-            NSLog(@"1");
             if (![_searchArray isEqualToArray:_fetchedArray]) {
                 _searchArray = [_fetchedArray mutableCopy];
             }
         } else {
-            NSLog(@"2");
             _searchArray = [NSMutableArray arrayWithArray:
                             [_fetchedArray filteredArrayUsingPredicate:typePredicate]];
         }
@@ -137,6 +119,14 @@
 
 #pragma mark - UIGestureRecognizerDelegate
 
+-(void)setupLongPressRecognizer{
+    longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(onLongPress:)];
+    longPress.delegate = self;
+    [_table addGestureRecognizer:longPress];
+    isMoving = NO;
+}
+
+
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     if (![otherGestureRecognizer isEqual:longPress]) {
         [otherGestureRecognizer shouldBeRequiredToFailByGestureRecognizer:longPress];
@@ -148,6 +138,7 @@
 #pragma mark - Cell movement
 
 -(IBAction)onLongPress:(id)sender{
+    if (_searchController.isActive) return;
     UILongPressGestureRecognizer *longPress = (UILongPressGestureRecognizer *)sender;
     UIGestureRecognizerState state = longPress.state;
     CGPoint location = [longPress locationInView:_table];
@@ -240,24 +231,45 @@
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView {
+    if (_searchController.isActive) return 1;
     return _fetchedResultsController.sections.count;
 }
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)sectionIndex
 {
+    if (_searchController.isActive) return [_searchArray count];
     id<NSFetchedResultsSectionInfo> section = _fetchedResultsController.sections[sectionIndex];
     return section.numberOfObjects;
 }
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath {
-    id object = [_fetchedResultsController objectAtIndexPath:indexPath];
+    id object = nil;
     SWCell *cell = (SWCell *)[tableView dequeueReusableCellWithIdentifier:_reuseIdentifier forIndexPath:indexPath];
-    cell.leftUtilityButtons = [self leftButtons];
-    cell.delegate = self;
+    if (_searchController.isActive) {
+        object = [_searchArray objectAtIndex:indexPath.row];
+        cell.delegate = nil;
+        cell.leftUtilityButtons = nil;
+    } else {
+        cell.leftUtilityButtons = [self leftButtons];
+        cell.delegate = self;
+        object = [_fetchedResultsController objectAtIndexPath:indexPath];
+    }
     [_delegate configureCell:cell withObject:object];
     return cell;
 }
 
+- (BOOL)tableView:(UITableView*)tableView canEditRowAtIndexPath:(NSIndexPath*)indexPath {
+    if (_searchController.isActive) return NO;
+    return YES;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        [_delegate deleteObject:[_fetchedResultsController objectAtIndexPath:indexPath]];
+    }
+}
+
+#pragma mark - SWLeftButton
 
 - (NSArray *)leftButtons
 {
@@ -267,6 +279,7 @@
 }
 
 -(void)swipeableTableViewCell:(SWTableViewCell *)cell didTriggerLeftUtilityButtonWithIndex:(NSInteger)index{
+    if (_searchController.isActive) return;
     NSLog(@"%@", @"Rename");
     SWCell *myCell = (SWCell*)cell;
     
@@ -322,17 +335,6 @@
     }
 }
 
-- (BOOL)tableView:(UITableView*)tableView canEditRowAtIndexPath:(NSIndexPath*)indexPath
-{
-    return YES;
-}
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        [_delegate deleteObject:[_fetchedResultsController objectAtIndexPath:indexPath]];
-    }
-}
-
 
 #pragma mark NSFetchedResultsControllerDelegate
 
@@ -349,7 +351,7 @@
 
 - (void)controller:(NSFetchedResultsController*)controller didChangeObject:(id)anObject atIndexPath:(NSIndexPath*)indexPath forChangeType:(NSFetchedResultsChangeType)type newIndexPath:(NSIndexPath*)newIndexPath
 {
-    if (isMoving)return;
+    if (isMoving || _searchController.isActive)return;
     
     if (type == NSFetchedResultsChangeInsert) {
         [_table insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
@@ -373,13 +375,14 @@
     _searchArray = [[NSMutableArray alloc] initWithCapacity:[_fetchedArray count]];
 }
 
--(void)setContext:(NSManagedObjectContext *)context{
-    _context = context;
-}
 
 - (id)selectedItem {
     NSIndexPath* path = _table.indexPathForSelectedRow;
-    return path ? [_fetchedResultsController objectAtIndexPath:path] : nil;
+    if (_searchController.isActive) {
+        return path ? [_searchArray objectAtIndex:path.row] : nil;
+    } else {
+        return path ? [_fetchedResultsController objectAtIndexPath:path] : nil;
+    }
 }
 
 

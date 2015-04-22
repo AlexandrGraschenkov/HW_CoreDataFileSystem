@@ -11,7 +11,6 @@
 @import UIKit;
 #import "Item.h"
 #import "CoreDataManager.h"
-#import "ResultsViewController.h"
 
 
 @class NSFetchedResultsController;
@@ -29,7 +28,6 @@
 @property (nonatomic, strong) UISearchController *searchController;
 @property (nonatomic, strong) NSMutableArray *fetchedArray;
 @property (nonatomic, strong) NSMutableArray *searchArray;
-@property (nonatomic, strong) NSManagedObjectContext* context;
 @property (nonatomic, strong) NSFetchedResultsController* fetchedResultsController;
 @property (nonatomic, weak) id<FetchedResultsDataDelegating> delegate;
 @property (nonatomic, copy) NSString* reuseIdentifier;

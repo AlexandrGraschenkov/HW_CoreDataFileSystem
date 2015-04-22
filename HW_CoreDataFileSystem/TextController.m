@@ -24,7 +24,7 @@
 
 -(void)dealloc{
     _item.text = _descript.text;
-    NSLog(@"Saved: %i", [[_item managedObjectContext] save:nil]);
+    [[_item managedObjectContext] save:nil];
 }
 
 @end

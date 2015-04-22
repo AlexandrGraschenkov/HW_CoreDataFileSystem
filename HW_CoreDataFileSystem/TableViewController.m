@@ -59,7 +59,6 @@
 -(void)setupDataSource{
     _fetchedResults = [[FetchedResults alloc] initWithTableView:self.tableView];
     _fetchedResults.fetchedResultsController = _parent.childrenFetchedResultsController;
-    [_fetchedResults setContext:[self managedObjectContext]];
     _fetchedResults.delegate = self;
     _fetchedResults.reuseIdentifier = @"Cell";
     self.definesPresentationContext = YES;
@@ -197,7 +196,6 @@
 }
 
 
-
 - (void)configureCell:(id)theCell withObject:(id)object
 {
     SWCell* cell = theCell;
@@ -226,32 +224,6 @@
     }
 }
 
--(SWCell*)setCell:(SWCell*)cell withObject:(id)obj{
-    SWCell *tempCell;
-    Item* item = obj;
-    NSString *temp;
-    
-    switch ([item.type unsignedShortValue]) {
-        case 1:
-            tempCell.sizeLabel.text = [NSString stringWithFormat:@"Items: %lu Size: %@",(unsigned long)item.children.count,[NSByteCountFormatter stringFromByteCount:[self sizeOfFolder:item.children] countStyle:NSByteCountFormatterCountStyleFile]];
-            [tempCell.image setImage:[UIImage imageNamed:@"folder"]];
-            break;
-        case 2:
-            temp = [NSString stringWithFormat:@"Text size: %@",[NSByteCountFormatter stringFromByteCount:[[item.text dataUsingEncoding:NSUTF8StringEncoding] length] countStyle:NSByteCountFormatterCountStyleFile]];
-            tempCell.sizeLabel.text = temp;
-            [tempCell.image setImage:[UIImage imageNamed:@"text"]];
-            break;
-        case 3:
-            temp = [NSString stringWithFormat:@"Image size: %@",[NSByteCountFormatter stringFromByteCount:[item.img length] countStyle:NSByteCountFormatterCountStyleFile]];
-            tempCell.sizeLabel.text = temp;
-            [tempCell.image setImage:[UIImage imageNamed:@"picture"]];
-            break;
-        default:
-            NSLog(@"ERROR type: %@", item.type);
-            break;
-    }
-    return tempCell;
-}
 
 - (void)deleteObject:(id)object
 {
@@ -274,7 +246,7 @@
 
 - (void)alertTextFieldDidChange:(NSNotification *)notification
 {
-    UINavigationController *nav = self.presentedViewController;
+    UINavigationController *nav = (UINavigationController*)self.presentedViewController;
     UIAlertController *alertController = (UIAlertController *)[nav visibleViewController];
     BOOL isExist=NO;
     if (alertController)
@@ -306,7 +278,6 @@
 
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     Item* item = [_fetchedResults selectedItem];
-    NSLog(@"ORDER!!!: %@", item.order);
     switch ([item.type unsignedShortValue]) {
         case 1:{
             [self performSegueWithIdentifier:@"Folder" sender:self];
